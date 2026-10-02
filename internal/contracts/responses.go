@@ -12,6 +12,13 @@ type InterlockDecisionView struct {
 	ReviewedAt string `json:"reviewed_at"`
 }
 
+type HandoverView struct {
+	ShiftSupervisor  string `json:"shift_supervisor"`
+	IncomingOperator string `json:"incoming_operator"`
+	Note             string `json:"note,omitempty"`
+	HandedOverAt     string `json:"handed_over_at"`
+}
+
 type GateView struct {
 	ID              string  `json:"id"`
 	Name            string  `json:"name"`
@@ -24,20 +31,22 @@ type GateView struct {
 }
 
 type CommandView struct {
-	ID               string                 `json:"id"`
-	GateID           string                 `json:"gate_id"`
-	TargetAperture   float64                `json:"target_aperture"`
-	StartingAperture float64                `json:"starting_aperture"`
-	Reason           string                 `json:"reason"`
-	RequestedBy      string                 `json:"requested_by"`
-	Status           string                 `json:"status"`
-	Interlock        *InterlockDecisionView `json:"interlock,omitempty"`
-	ExecutionToken   string                 `json:"execution_token,omitempty"`
-	ExecutedBy       string                 `json:"executed_by,omitempty"`
-	TerminalReason   string                 `json:"terminal_reason,omitempty"`
-	CreatedAt        string                 `json:"created_at"`
-	UpdatedAt        string                 `json:"updated_at"`
-	Version          int64                  `json:"version"`
+	ID                 string                 `json:"id"`
+	GateID             string                 `json:"gate_id"`
+	TargetAperture     float64                `json:"target_aperture"`
+	StartingAperture   float64                `json:"starting_aperture"`
+	Reason             string                 `json:"reason"`
+	RequestedBy        string                 `json:"requested_by"`
+	Status             string                 `json:"status"`
+	Interlock          *InterlockDecisionView `json:"interlock,omitempty"`
+	ExecutionToken     string                 `json:"execution_token,omitempty"`
+	AuthorizedOperator string                 `json:"authorized_operator,omitempty"`
+	Handover           *HandoverView          `json:"handover,omitempty"`
+	ExecutedBy         string                 `json:"executed_by,omitempty"`
+	TerminalReason     string                 `json:"terminal_reason,omitempty"`
+	CreatedAt          string                 `json:"created_at"`
+	UpdatedAt          string                 `json:"updated_at"`
+	Version            int64                  `json:"version"`
 }
 
 type RegisterGateResponse struct {
@@ -58,6 +67,11 @@ type ReviewCommandResponse struct {
 }
 
 type ExecuteCommandResponse struct {
+	Command CommandView `json:"command"`
+	Gate    GateView    `json:"gate"`
+}
+
+type TransferExecutionResponse struct {
 	Command CommandView `json:"command"`
 	Gate    GateView    `json:"gate"`
 }

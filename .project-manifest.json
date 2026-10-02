@@ -124,6 +124,27 @@
         "storage",
         "contracts"
       ]
+    },
+    {
+      "id": "shift-handover",
+      "name": "Hand over command execution",
+      "entry": "POST /commands/{id}/handover",
+      "steps": [
+        "validate the shift supervisor and incoming operator",
+        "assert the command is still approved and the gate remains reserved by it",
+        "issue a new execution token bound to the incoming operator and revoke the previous token atomically"
+      ],
+      "success": "returns the still-approved command with a fresh token while the gate stays reserved",
+      "failure": "returns conflict for non-approved commands, stale tokens, or unauthorized operators; concurrent handover and execute races have a single winner",
+      "verification": "workflowcheck transfers a command, proves the old token and old operator fail, runs concurrent handovers and a handover/execute race, and rejects terminal-state handovers",
+      "module_ids": [
+        "entrypoint",
+        "httpapi",
+        "coordination",
+        "domain",
+        "storage",
+        "contracts"
+      ]
     }
   ],
   "complexity": {

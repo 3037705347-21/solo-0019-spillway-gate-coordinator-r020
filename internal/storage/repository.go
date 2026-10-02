@@ -27,4 +27,13 @@ type Repository interface {
 		simulateFault bool,
 		now time.Time,
 	) (domain.GateCommand, domain.Gate, error)
+	TransferCommand(
+		ctx context.Context,
+		commandID string,
+		supervisor string,
+		operator string,
+		note string,
+		token string,
+		now time.Time,
+	) (domain.GateCommand, domain.Gate, error)
 }

@@ -166,11 +166,50 @@ func (m *MemoryRepository) ExecuteCommand(
 	return cloneCommand(nextCommand), nextGate, nil
 }
 
-func cloneCommand(command domain.GateCommand) domain.GateCommand {
-	if command.Interlock == nil {
-		return command
+func (m *MemoryRepository) TransferCommand(
+	_ context.Context,
+	commandID string,
+	supervisor string,
+	operator string,
+	note string,
+	token string,
+	now time.Time,
+) (domain.GateCommand, domain.Gate, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	command, exists := m.commands[commandID]
+	if !exists {
+		return domain.GateCommand{}, domain.Gate{}, domain.NotFound("command_not_found", "command id was not found")
 	}
-	decision := *command.Interlock
-	command.Interlock = &decision
+	gate, exists := m.gates[command.GateID]
+	if !exists {
+		return domain.GateCommand{}, domain.Gate{}, domain.NotFound("gate_not_found", "gate id was not found")
+	}
+
+	nextCommand := cloneCommand(command)
+	if err := nextCommand.TransferExecution(supervisor, operator, note, token, now); err != nil {
+		return domain.GateCommand{}, domain.Gate{}, err
+	}
+
+	nextGate := gate
+	if err := nextGate.ConfirmReservation(nextCommand.ID, now); err != nil {
+		return domain.GateCommand{}, domain.Gate{}, err
+	}
+
+	m.commands[nextCommand.ID] = nextCommand
+	m.gates[nextGate.ID] = nextGate
+	return cloneCommand(nextCommand), nextGate, nil
+}
+
+func cloneCommand(command domain.GateCommand) domain.GateCommand {
+	if command.Interlock != nil {
+		decision := *command.Interlock
+		command.Interlock = &decision
+	}
+	if command.Handover != nil {
+		record := *command.Handover
+		command.Handover = &record
+	}
 	return command
 }

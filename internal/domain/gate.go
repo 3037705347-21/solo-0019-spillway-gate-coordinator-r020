@@ -88,6 +88,19 @@ func (g *Gate) StartMovement(commandID string, now time.Time) error {
 	return nil
 }
 
+// ConfirmReservation asserts that the gate is still reserved by the given
+// command. Execution handover must not disturb the occupancy, so the gate
+// state and active command reference are left untouched.
+func (g *Gate) ConfirmReservation(commandID string, _ time.Time) error {
+	if g.Status != GateReserved {
+		return Conflict("gate_not_reserved", "gate must remain reserved while execution is transferred")
+	}
+	if g.ActiveCommandID == "" || g.ActiveCommandID != commandID {
+		return Conflict("gate_command_mismatch", "gate is not occupied by this command")
+	}
+	return nil
+}
+
 func (g *Gate) Settle(finalAperture float64, faulted bool, now time.Time) error {
 	if g.Status != GateMoving {
 		return Conflict("gate_not_moving", "gate must be moving before it can settle")

@@ -20,6 +20,7 @@ POST /commands
 GET  /commands/{id}
 POST /commands/{id}/interlock
 POST /commands/{id}/execute
+POST /commands/{id}/handover
 ```
 
 登记闸门示例：
@@ -64,6 +65,18 @@ POST /commands/{id}/execute
 }
 ```
 
+交接示例（命令已核准、闸门尚未开始移动）：
+
+```json
+{
+  "shift_supervisor": "supervisor-gao",
+  "incoming_operator": "operator-bai",
+  "note": "中控交接班"
+}
+```
+
+交接响应返回新的 `execution_token` 和 `authorized_operator`，命令仍为 approved、闸门仍为 reserved；旧令牌立即失效，只有接班操作员能用新令牌执行。
+
 ## 目录
 
 - `cmd/server`：服务进程。
@@ -82,6 +95,7 @@ go run ./cmd/workflowcheck --workflow register-gate
 go run ./cmd/workflowcheck --workflow request-gate-command
 go run ./cmd/workflowcheck --workflow review-safety-interlock
 go run ./cmd/workflowcheck --workflow execute-gate-command
+go run ./cmd/workflowcheck --workflow shift-handover
 ```
 
 这些检查会创建临时 HTTP 服务并调用真实路由。它们不调用外部网络，也不依赖数据库。

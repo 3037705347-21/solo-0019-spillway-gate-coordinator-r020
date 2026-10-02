@@ -109,3 +109,25 @@ func (h *handler) executeCommand(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 }
+
+func (h *handler) transferExecution(w http.ResponseWriter, r *http.Request) {
+	var request contracts.TransferExecutionRequest
+	if err := decodeJSON(w, r, &request); err != nil {
+		writeDomainError(w, err)
+		return
+	}
+
+	command, gate, err := h.service.TransferCommandExecution(r.Context(), r.PathValue("id"), request)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+	writeJSON(
+		w,
+		http.StatusOK,
+		contracts.TransferExecutionResponse{
+			Command: commandView(command, true),
+			Gate:    gateView(gate),
+		},
+	)
+}

@@ -87,3 +87,27 @@ func (s *Service) ExecuteCommand(
 		s.now(),
 	)
 }
+
+func (s *Service) TransferCommandExecution(
+	ctx context.Context,
+	commandID string,
+	request contracts.TransferExecutionRequest,
+) (domain.GateCommand, domain.Gate, error) {
+	token, err := s.newToken()
+	if err != nil {
+		return domain.GateCommand{}, domain.Gate{}, domain.Internal(
+			"execution_token_generation_failed",
+			"execution token could not be generated",
+		)
+	}
+
+	return s.repository.TransferCommand(
+		ctx,
+		commandID,
+		request.ShiftSupervisor,
+		request.IncomingOperator,
+		request.Note,
+		token,
+		s.now(),
+	)
+}

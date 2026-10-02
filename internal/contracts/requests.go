@@ -25,3 +25,9 @@ type ExecuteCommandRequest struct {
 	Token         string `json:"token"`
 	SimulateFault bool   `json:"simulate_fault"`
 }
+
+type TransferExecutionRequest struct {
+	ShiftSupervisor  string `json:"shift_supervisor"`
+	IncomingOperator string `json:"incoming_operator"`
+	Note             string `json:"note"`
+}

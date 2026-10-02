@@ -43,12 +43,23 @@ func commandView(command domain.GateCommand, includeToken bool) contracts.Comman
 	if includeToken && command.Status == domain.CommandApproved {
 		view.ExecutionToken = command.ExecutionToken
 	}
+	if command.AuthorizedOperator != "" {
+		view.AuthorizedOperator = command.AuthorizedOperator
+	}
 	if command.Interlock != nil {
 		view.Interlock = &contracts.InterlockDecisionView{
 			Verdict:    string(command.Interlock.Verdict),
 			Verifier:   command.Interlock.Verifier,
 			Note:       command.Interlock.Note,
 			ReviewedAt: formatTime(command.Interlock.ReviewedAt),
+		}
+	}
+	if command.Handover != nil {
+		view.Handover = &contracts.HandoverView{
+			ShiftSupervisor:  command.Handover.Supervisor,
+			IncomingOperator: command.Handover.Operator,
+			Note:             command.Handover.Note,
+			HandedOverAt:     formatTime(command.Handover.HandedOverAt),
 		}
 	}
 	return view

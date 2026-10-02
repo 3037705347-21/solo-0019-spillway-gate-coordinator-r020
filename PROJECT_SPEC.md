@@ -34,16 +34,22 @@
 
 闸门操作员通过 `POST /commands/{id}/execute` 提交执行令牌。服务校验命令、令牌、闸门占用关系和目标开度，在临界区内完成 approved、executing、completed 或 aborted 的转换，并同步更新闸门状态。令牌在命令结束后失效，不能复用。
 
+### handover-command-execution
+
+值班负责人通过 `POST /commands/{id}/handover` 把已核准、尚未开始移动的命令执行权限转给接班操作员。服务在同一临界区内校验命令仍为 approved 且闸门仍由该命令占用，随后签发给接班操作员的新执行令牌并立即使旧令牌失效。交接不改变命令状态（仍为 approved），也不释放闸门占用。旧令牌或非授权操作员启动移动必须返回冲突；并发交接以及交接与启动竞争都在仓库锁内串行化，只能有一个获胜结果。executing、completed、aborted、rejected、pending 命令不能交接。
+
 ## 状态与规则
 
 - `gate` 状态：idle、reserved、moving、faulted。
 - `gate_command` 状态：pending、approved、rejected、executing、completed、aborted。
 - 只有 pending 命令可以复核。
 - 只有 approved 命令可以执行，且执行令牌必须匹配。
+- 只有 approved 且闸门仍由其占用的命令可以交接执行权限；交接后旧令牌立即失效，启动移动的操作员必须是被授权的接班操作员。
 - clear 复核与闸门占用必须同时成功；任一步失败时两者都不写入。
 - blocked 复核使命令 rejected，不会占用闸门。
 - 模拟故障会令命令 aborted、闸门 faulted，并保留最终开度。
 - 已完成或已中止的命令不能再次执行。
+- 已执行、已中止或已完成的命令不能再次转移权限。
 
 ## 模块边界
 
@@ -64,6 +70,7 @@
 - `GET /commands/{id}`
 - `POST /commands/{id}/interlock`
 - `POST /commands/{id}/execute`
+- `POST /commands/{id}/handover`
 
 错误响应统一为：
 
