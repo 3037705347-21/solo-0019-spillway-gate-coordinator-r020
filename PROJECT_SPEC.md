@@ -30,6 +30,10 @@
 
 安全复核员通过 `POST /commands/{id}/interlock` 提交复核结论。clear 结论会原子占用闸门并签发一次执行令牌；blocked 结论会把命令置为 rejected。其他命令先占用同一闸门时，当前 clear 结论返回冲突且不改变闸门。
 
+### handover-command-execution
+
+值班负责人通过 `POST /commands/{id}/handover` 把已核准命令的执行权限转给接班操作员。服务原子轮换执行令牌、记录接班操作员和负责人，旧令牌立即失效；命令保持 approved，闸门保持被该命令占用。只有 approved 命令可以交接，交接与交接、交接与启动之间在同一临界区内决出唯一结果。
+
 ### execute-gate-command
 
 闸门操作员通过 `POST /commands/{id}/execute` 提交执行令牌。服务校验命令、令牌、闸门占用关系和目标开度，在临界区内完成 approved、executing、completed 或 aborted 的转换，并同步更新闸门状态。令牌在命令结束后失效，不能复用。
@@ -40,6 +44,8 @@
 - `gate_command` 状态：pending、approved、rejected、executing、completed、aborted。
 - 只有 pending 命令可以复核。
 - 只有 approved 命令可以执行，且执行令牌必须匹配。
+- 只有 approved 且仍占用闸门的命令可以交接；交接轮换执行令牌并立即作废旧令牌，不释放闸门。
+- 交接、复核占用与执行启动共享同一临界区，并发冲突时只有一个操作生效。
 - clear 复核与闸门占用必须同时成功；任一步失败时两者都不写入。
 - blocked 复核使命令 rejected，不会占用闸门。
 - 模拟故障会令命令 aborted、闸门 faulted，并保留最终开度。
@@ -63,6 +69,7 @@
 - `POST /commands`
 - `GET /commands/{id}`
 - `POST /commands/{id}/interlock`
+- `POST /commands/{id}/handover`
 - `POST /commands/{id}/execute`
 
 错误响应统一为：

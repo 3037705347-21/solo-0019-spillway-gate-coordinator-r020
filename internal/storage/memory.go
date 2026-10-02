@@ -115,6 +115,42 @@ func (m *MemoryRepository) ReviewCommand(
 	return cloneCommand(nextCommand), nextGate, nil
 }
 
+func (m *MemoryRepository) HandoverCommand(
+	_ context.Context,
+	commandID string,
+	supervisor string,
+	operator string,
+	token string,
+	now time.Time,
+) (domain.GateCommand, domain.Gate, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	command, exists := m.commands[commandID]
+	if !exists {
+		return domain.GateCommand{}, domain.Gate{}, domain.NotFound("command_not_found", "command id was not found")
+	}
+	gate, exists := m.gates[command.GateID]
+	if !exists {
+		return domain.GateCommand{}, domain.Gate{}, domain.NotFound("gate_not_found", "gate id was not found")
+	}
+
+	nextCommand := cloneCommand(command)
+	if err := nextCommand.Handover(supervisor, operator, token, now); err != nil {
+		return domain.GateCommand{}, domain.Gate{}, err
+	}
+
+	if gate.Status != domain.GateReserved || gate.ActiveCommandID != nextCommand.ID {
+		return domain.GateCommand{}, domain.Gate{}, domain.Conflict(
+			"gate_reservation_mismatch",
+			"gate is no longer reserved by this command",
+		)
+	}
+
+	m.commands[nextCommand.ID] = nextCommand
+	return cloneCommand(nextCommand), gate, nil
+}
+
 func (m *MemoryRepository) ExecuteCommand(
 	_ context.Context,
 	commandID string,

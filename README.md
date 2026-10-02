@@ -19,6 +19,7 @@ GET  /gates/{id}
 POST /commands
 GET  /commands/{id}
 POST /commands/{id}/interlock
+POST /commands/{id}/handover
 POST /commands/{id}/execute
 ```
 
@@ -54,6 +55,17 @@ POST /commands/{id}/execute
 }
 ```
 
+交接执行权限示例：
+
+```json
+{
+  "supervisor": "supervisor-liu",
+  "operator": "operator-successor"
+}
+```
+
+交接后响应中的 `execution_token` 轮换为新令牌，旧令牌立即失效；命令保持 approved，闸门保持 reserved。
+
 执行示例：
 
 ```json
@@ -67,7 +79,7 @@ POST /commands/{id}/execute
 ## 目录
 
 - `cmd/server`：服务进程。
-- `cmd/workflowcheck`：四条工作流的真实 HTTP 检查入口。
+- `cmd/workflowcheck`：五条工作流的真实 HTTP 检查入口。
 - `internal/bootstrap`：依赖装配。
 - `internal/contracts`：公开数据契约。
 - `internal/coordination`：业务工作流。
@@ -81,6 +93,7 @@ POST /commands/{id}/execute
 go run ./cmd/workflowcheck --workflow register-gate
 go run ./cmd/workflowcheck --workflow request-gate-command
 go run ./cmd/workflowcheck --workflow review-safety-interlock
+go run ./cmd/workflowcheck --workflow handover-command-execution
 go run ./cmd/workflowcheck --workflow execute-gate-command
 ```
 

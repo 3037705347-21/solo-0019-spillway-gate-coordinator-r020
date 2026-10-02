@@ -20,6 +20,11 @@ type ReviewInterlockRequest struct {
 	Note     string `json:"note"`
 }
 
+type HandoverCommandRequest struct {
+	Supervisor string `json:"supervisor"`
+	Operator   string `json:"operator"`
+}
+
 type ExecuteCommandRequest struct {
 	Operator      string `json:"operator"`
 	Token         string `json:"token"`

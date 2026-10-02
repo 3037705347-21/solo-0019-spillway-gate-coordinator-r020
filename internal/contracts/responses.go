@@ -24,20 +24,23 @@ type GateView struct {
 }
 
 type CommandView struct {
-	ID               string                 `json:"id"`
-	GateID           string                 `json:"gate_id"`
-	TargetAperture   float64                `json:"target_aperture"`
-	StartingAperture float64                `json:"starting_aperture"`
-	Reason           string                 `json:"reason"`
-	RequestedBy      string                 `json:"requested_by"`
-	Status           string                 `json:"status"`
-	Interlock        *InterlockDecisionView `json:"interlock,omitempty"`
-	ExecutionToken   string                 `json:"execution_token,omitempty"`
-	ExecutedBy       string                 `json:"executed_by,omitempty"`
-	TerminalReason   string                 `json:"terminal_reason,omitempty"`
-	CreatedAt        string                 `json:"created_at"`
-	UpdatedAt        string                 `json:"updated_at"`
-	Version          int64                  `json:"version"`
+	ID                 string                 `json:"id"`
+	GateID             string                 `json:"gate_id"`
+	TargetAperture     float64                `json:"target_aperture"`
+	StartingAperture   float64                `json:"starting_aperture"`
+	Reason             string                 `json:"reason"`
+	RequestedBy        string                 `json:"requested_by"`
+	Status             string                 `json:"status"`
+	Interlock          *InterlockDecisionView `json:"interlock,omitempty"`
+	ExecutionToken     string                 `json:"execution_token,omitempty"`
+	ExecutionAssignee  string                 `json:"execution_assignee,omitempty"`
+	HandoverSupervisor string                 `json:"handover_supervisor,omitempty"`
+	HandoverAt         string                 `json:"handover_at,omitempty"`
+	ExecutedBy         string                 `json:"executed_by,omitempty"`
+	TerminalReason     string                 `json:"terminal_reason,omitempty"`
+	CreatedAt          string                 `json:"created_at"`
+	UpdatedAt          string                 `json:"updated_at"`
+	Version            int64                  `json:"version"`
 }
 
 type RegisterGateResponse struct {
@@ -53,6 +56,11 @@ type CommandResponse struct {
 }
 
 type ReviewCommandResponse struct {
+	Command CommandView `json:"command"`
+	Gate    GateView    `json:"gate"`
+}
+
+type HandoverCommandResponse struct {
 	Command CommandView `json:"command"`
 	Gate    GateView    `json:"gate"`
 }

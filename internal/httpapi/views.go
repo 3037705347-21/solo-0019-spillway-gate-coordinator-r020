@@ -26,18 +26,24 @@ func gateView(gate domain.Gate) contracts.GateView {
 
 func commandView(command domain.GateCommand, includeToken bool) contracts.CommandView {
 	view := contracts.CommandView{
-		ID:               command.ID,
-		GateID:           command.GateID,
-		TargetAperture:   command.TargetAperture,
-		StartingAperture: command.StartingAperture,
-		Reason:           command.Reason,
-		RequestedBy:      command.RequestedBy,
-		Status:           string(command.Status),
-		ExecutedBy:       command.ExecutedBy,
-		TerminalReason:   command.TerminalReason,
-		CreatedAt:        formatTime(command.CreatedAt),
-		UpdatedAt:        formatTime(command.UpdatedAt),
-		Version:          command.Version,
+		ID:                 command.ID,
+		GateID:             command.GateID,
+		TargetAperture:     command.TargetAperture,
+		StartingAperture:   command.StartingAperture,
+		Reason:             command.Reason,
+		RequestedBy:        command.RequestedBy,
+		Status:             string(command.Status),
+		ExecutionAssignee:  command.ExecutionAssignee,
+		HandoverSupervisor: command.HandoverSupervisor,
+		ExecutedBy:         command.ExecutedBy,
+		TerminalReason:     command.TerminalReason,
+		CreatedAt:          formatTime(command.CreatedAt),
+		UpdatedAt:          formatTime(command.UpdatedAt),
+		Version:            command.Version,
+	}
+
+	if !command.HandoverAt.IsZero() {
+		view.HandoverAt = formatTime(command.HandoverAt)
 	}
 
 	if includeToken && command.Status == domain.CommandApproved {

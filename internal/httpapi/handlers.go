@@ -88,6 +88,28 @@ func (h *handler) reviewInterlock(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
+func (h *handler) handoverCommand(w http.ResponseWriter, r *http.Request) {
+	var request contracts.HandoverCommandRequest
+	if err := decodeJSON(w, r, &request); err != nil {
+		writeDomainError(w, err)
+		return
+	}
+
+	command, gate, err := h.service.HandoverCommand(r.Context(), r.PathValue("id"), request)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+	writeJSON(
+		w,
+		http.StatusOK,
+		contracts.HandoverCommandResponse{
+			Command: commandView(command, true),
+			Gate:    gateView(gate),
+		},
+	)
+}
+
 func (h *handler) executeCommand(w http.ResponseWriter, r *http.Request) {
 	var request contracts.ExecuteCommandRequest
 	if err := decodeJSON(w, r, &request); err != nil {

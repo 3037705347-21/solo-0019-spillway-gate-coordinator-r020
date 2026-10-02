@@ -17,20 +17,23 @@ const (
 )
 
 type GateCommand struct {
-	ID               string
-	GateID           string
-	TargetAperture   float64
-	StartingAperture float64
-	Reason           string
-	RequestedBy      string
-	Status           CommandStatus
-	Interlock        *InterlockDecision
-	ExecutionToken   string
-	ExecutedBy       string
-	TerminalReason   string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	Version          int64
+	ID                 string
+	GateID             string
+	TargetAperture     float64
+	StartingAperture   float64
+	Reason             string
+	RequestedBy        string
+	Status             CommandStatus
+	Interlock          *InterlockDecision
+	ExecutionToken     string
+	ExecutionAssignee  string
+	HandoverSupervisor string
+	HandoverAt         time.Time
+	ExecutedBy         string
+	TerminalReason     string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	Version            int64
 }
 
 func NewGateCommand(
@@ -109,6 +112,35 @@ func (c *GateCommand) Review(decision InterlockDecision, token string, now time.
 
 	c.ExecutionToken = ""
 	c.Status = CommandRejected
+	return nil
+}
+
+func (c *GateCommand) Handover(supervisor, operator, token string, now time.Time) error {
+	if c.Status != CommandApproved {
+		return Conflict("command_not_approved", "only approved commands can transfer execution authority")
+	}
+
+	supervisor = strings.TrimSpace(supervisor)
+	if supervisor == "" {
+		return Invalid("invalid_supervisor", "supervisor is required")
+	}
+
+	operator = strings.TrimSpace(operator)
+	if operator == "" {
+		return Invalid("invalid_operator", "operator is required")
+	}
+
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return Invalid("missing_execution_token", "handover requires a new execution token")
+	}
+
+	c.ExecutionToken = token
+	c.ExecutionAssignee = operator
+	c.HandoverSupervisor = supervisor
+	c.HandoverAt = now.UTC()
+	c.UpdatedAt = now.UTC()
+	c.Version++
 	return nil
 }
 

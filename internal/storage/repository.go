@@ -19,6 +19,14 @@ type Repository interface {
 		token string,
 		now time.Time,
 	) (domain.GateCommand, domain.Gate, error)
+	HandoverCommand(
+		ctx context.Context,
+		commandID string,
+		supervisor string,
+		operator string,
+		token string,
+		now time.Time,
+	) (domain.GateCommand, domain.Gate, error)
 	ExecuteCommand(
 		ctx context.Context,
 		commandID string,

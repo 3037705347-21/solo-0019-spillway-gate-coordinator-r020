@@ -73,6 +73,29 @@ func (s *Service) ReviewInterlock(
 	return s.repository.ReviewCommand(ctx, commandID, decision, token, s.now())
 }
 
+func (s *Service) HandoverCommand(
+	ctx context.Context,
+	commandID string,
+	request contracts.HandoverCommandRequest,
+) (domain.GateCommand, domain.Gate, error) {
+	token, err := s.newToken()
+	if err != nil {
+		return domain.GateCommand{}, domain.Gate{}, domain.Internal(
+			"execution_token_generation_failed",
+			"execution token could not be generated",
+		)
+	}
+
+	return s.repository.HandoverCommand(
+		ctx,
+		commandID,
+		request.Supervisor,
+		request.Operator,
+		token,
+		s.now(),
+	)
+}
+
 func (s *Service) ExecuteCommand(
 	ctx context.Context,
 	commandID string,
